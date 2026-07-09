@@ -1,6 +1,6 @@
 import { useState, useEffect, FormEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, LogIn, UserPlus, LogOut, Package, Gift, ShieldCheck, ShoppingBag, Eye, EyeOff } from 'lucide-react';
+import { X, LogIn, UserPlus, LogOut, Package, Gift, ShieldCheck, ShoppingBag, Eye, EyeOff, User, Calendar } from 'lucide-react';
 import { Product, SimulatedEmail } from '../types';
 import { PRODUCTS } from '../data';
 
@@ -28,6 +28,108 @@ export default function LoginModal({
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+
+  // Logged in user states
+  const [loggedInTab, setLoggedInTab] = useState<'profile' | 'orders'>('profile');
+  const [localOrders, setLocalOrders] = useState<any[]>([]);
+
+  // Load/seed orders from localStorage
+  const getOrdersFromLocalStorage = () => {
+    try {
+      const stored = localStorage.getItem('malow_placed_orders');
+      if (stored) {
+        return JSON.parse(stored);
+      }
+      
+      // Seed order history with realistic completed purchases if empty
+      const seedOrders = [
+        {
+          orderId: 'INV-2026-84920',
+          fullName: user?.name || 'Sarah Jenkins',
+          shippingAddress: '123 Cozy Nursery Ln, Cloud City, CA 90210',
+          items: [
+            {
+              name: PRODUCTS[0].name,
+              price: PRODUCTS[0].price,
+              quantity: 1,
+              size: '6-12 Months',
+              color: PRODUCTS[0].colorName,
+              image: PRODUCTS[0].image
+            },
+            {
+              name: PRODUCTS[4]?.name || 'Quilted Cloud Jacket',
+              price: PRODUCTS[4]?.price || 15.00,
+              quantity: 1,
+              size: '6-12 Months',
+              color: PRODUCTS[4]?.colorName || 'Caramel',
+              image: PRODUCTS[4]?.image || ''
+            }
+          ],
+          subtotal: PRODUCTS[0].price + (PRODUCTS[4]?.price || 15.00),
+          shippingCost: 0,
+          taxCost: 1.96,
+          totalCost: PRODUCTS[0].price + (PRODUCTS[4]?.price || 15.00) + 1.96,
+          paymentMethod: 'Secure Credit Card',
+          date: 'July 8, 2026',
+          status: 'Shipped',
+          timeline: [
+            { status: 'Order Placed', date: 'July 8', time: '10:14 AM', completed: true, description: 'Confirmation email sent, payment secured.' },
+            { status: 'Processing', date: 'July 8', time: '11:30 AM', completed: true, description: 'Selecting and preparing premium organic fabrics with absolute care.' },
+            { status: 'Shipped', date: 'July 9', time: '08:45 AM', completed: true, description: 'Dispatched via Eco-Express courier.' },
+            { status: 'Delivered', date: '', time: '', completed: false, description: 'Arrived safely at your doorstep.' }
+          ]
+        },
+        {
+          orderId: 'INV-2026-79102',
+          fullName: user?.name || 'Sarah Jenkins',
+          shippingAddress: '123 Cozy Nursery Ln, Cloud City, CA 90210',
+          items: [
+            {
+              name: PRODUCTS[2].name,
+              price: PRODUCTS[2].price,
+              quantity: 2,
+              size: '3-6 Months',
+              color: PRODUCTS[2].colorName,
+              image: PRODUCTS[2].image
+            },
+            {
+              name: PRODUCTS[3].name,
+              price: PRODUCTS[3].price,
+              quantity: 1,
+              size: '0-3 Months',
+              color: PRODUCTS[3].colorName,
+              image: PRODUCTS[3].image
+            }
+          ],
+          subtotal: PRODUCTS[2].price * 2 + PRODUCTS[3].price,
+          shippingCost: 0,
+          taxCost: 3.24,
+          totalCost: PRODUCTS[2].price * 2 + PRODUCTS[3].price + 3.24,
+          paymentMethod: 'Direct Bank Clearing',
+          date: 'June 22, 2026',
+          status: 'Delivered',
+          timeline: [
+            { status: 'Order Placed', date: 'June 22', time: '02:15 PM', completed: true, description: 'Bank transfer received.' },
+            { status: 'Processing', date: 'June 22', time: '03:40 PM', completed: true, description: 'Certified GOTS fabrics selected.' },
+            { status: 'Shipped', date: 'June 23', time: '09:00 AM', completed: true, description: 'Dispatched with Carbon-Neutral post.' },
+            { status: 'Delivered', date: 'June 25', time: '04:10 PM', completed: true, description: 'Successfully handed over to parent.' }
+          ]
+        }
+      ];
+      localStorage.setItem('malow_placed_orders', JSON.stringify(seedOrders));
+      return seedOrders;
+    } catch (err) {
+      console.error('Failed to load orders from local storage', err);
+      return [];
+    }
+  };
+
+  // Synchronize orders whenever modal is open and user is logged in
+  useEffect(() => {
+    if (user && isOpen) {
+      setLocalOrders(getOrdersFromLocalStorage());
+    }
+  }, [user, isOpen]);
 
   // Clean form errors on tab switch
   useEffect(() => {
@@ -132,32 +234,6 @@ export default function LoginModal({
     }
   };
 
-  // Mock Orders generated from actual products in catalog
-  const mockOrders = [
-    {
-      id: 'ML-84920',
-      date: 'July 8, 2026',
-      status: 'Shipped (In Transit)',
-      statusColor: 'text-amber-600 bg-amber-50 border-amber-200/50',
-      total: 28.50,
-      items: [
-        { product: PRODUCTS[0], quantity: 1, size: '6-12 Months' },
-        { product: PRODUCTS[4], quantity: 1, size: 'One Size' }
-      ]
-    },
-    {
-      id: 'ML-79102',
-      date: 'June 22, 2026',
-      status: 'Delivered',
-      statusColor: 'text-brand-mint-dark bg-brand-mint/40 border-brand-mint-dark/10',
-      total: 39.00,
-      items: [
-        { product: PRODUCTS[2], quantity: 2, size: '3-6 Months' },
-        { product: PRODUCTS[3], quantity: 1, size: '0-3 Months' }
-      ]
-    }
-  ];
-
   return (
     <AnimatePresence>
       {isOpen && (
@@ -200,18 +276,18 @@ export default function LoginModal({
             {/* Scrollable Container */}
             <div className="overflow-y-auto p-6 md:p-8 space-y-6">
               {user ? (
-                /* LOGGED IN VIEW */
+                /* LOGGED IN VIEW WITH ACCOUNT TABS */
                 <div className="space-y-6 animate-fadeIn">
                   {/* Profile Header */}
                   <div className="bg-white rounded-2xl p-5 border border-brand-clay/5 flex items-center gap-4 shadow-sm">
-                    <div className="w-14 h-14 rounded-full bg-brand-lavender text-brand-clay-dark flex items-center justify-center font-display font-black text-2xl uppercase border-2 border-white shadow-md">
+                    <div className="w-14 h-14 rounded-full bg-brand-lavender text-brand-clay-dark flex items-center justify-center font-display font-black text-2xl uppercase border-2 border-white shadow-md flex-shrink-0">
                       {user.name.charAt(0)}
                     </div>
-                    <div>
-                      <h4 className="font-display font-black text-brand-clay text-lg">
+                    <div className="min-w-0 flex-grow">
+                      <h4 className="font-display font-black text-brand-clay text-lg truncate">
                         {user.name}
                       </h4>
-                      <p className="text-xs text-brand-clay/60 font-sans">{user.email}</p>
+                      <p className="text-xs text-brand-clay/60 font-sans truncate">{user.email}</p>
                       <div className="flex items-center gap-1 mt-1 text-brand-mint-dark bg-brand-mint/40 px-2 py-0.5 rounded-full text-[10px] font-bold border border-brand-mint-dark/10 w-fit">
                         <ShieldCheck className="w-3.5 h-3.5" />
                         <span>VIP Parent Member</span>
@@ -219,79 +295,167 @@ export default function LoginModal({
                     </div>
                   </div>
 
-                  {/* Trust Signal / Perk */}
-                  <div className="bg-brand-mint/25 border border-brand-mint-dark/5 p-4 rounded-2xl flex items-start gap-3">
-                    <span className="text-xl">🌿</span>
-                    <div className="space-y-0.5">
-                      <p className="font-display font-extrabold text-brand-mint-dark text-xs uppercase tracking-wider">
-                        Cuddle Perks Active
-                      </p>
-                      <p className="text-xs text-brand-clay/80 font-sans leading-relaxed">
-                        You are unlocking free shipping, eco-rewards, and early previews of seasonal collections.
-                      </p>
-                    </div>
+                  {/* Account Tabs */}
+                  <div className="flex bg-white/60 p-1 rounded-full border border-brand-clay/5 shadow-inner">
+                    <button
+                      type="button"
+                      onClick={() => setLoggedInTab('profile')}
+                      className={`flex-grow py-2 rounded-full font-display text-[11px] font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                        loggedInTab === 'profile'
+                          ? 'bg-brand-clay text-white shadow-sm'
+                          : 'text-brand-clay/60 hover:text-brand-clay'
+                      }`}
+                    >
+                      <User className="w-3.5 h-3.5" />
+                      <span>My Profile</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setLoggedInTab('orders')}
+                      className={`flex-grow py-2 rounded-full font-display text-[11px] font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                        loggedInTab === 'orders'
+                          ? 'bg-brand-clay text-white shadow-sm'
+                          : 'text-brand-clay/60 hover:text-brand-clay'
+                      }`}
+                    >
+                      <Package className="w-3.5 h-3.5" />
+                      <span>Order History ({localOrders.length})</span>
+                    </button>
                   </div>
 
-                  {/* Order History */}
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-1.5 border-b border-brand-clay/5 pb-2">
-                      <Package className="w-4 h-4 text-brand-clay/60" />
-                      <h5 className="font-display font-extrabold text-brand-clay text-sm uppercase tracking-wide">
-                        My Order History
-                      </h5>
-                    </div>
+                  {loggedInTab === 'profile' ? (
+                    /* TAB 1: PROFILE AND PERKS DETAILS */
+                    <div className="space-y-5 animate-fadeIn">
+                      {/* Trust Signal / Perk */}
+                      <div className="bg-brand-mint/15 border border-brand-mint-dark/5 p-4.5 rounded-2xl flex items-start gap-3 shadow-sm">
+                        <span className="text-xl mt-0.5">🌿</span>
+                        <div className="space-y-1">
+                          <p className="font-display font-extrabold text-brand-mint-dark text-xs uppercase tracking-wider">
+                            Cuddle Perks Active
+                          </p>
+                          <p className="text-xs text-brand-clay/80 font-sans leading-relaxed">
+                            Your parent account unlocks custom eco-rewards, early seasonal previews, and carbon-neutral shipping on every boutique order.
+                          </p>
+                        </div>
+                      </div>
 
-                    <div className="space-y-4">
-                      {mockOrders.map((order) => (
-                        <div
-                          key={order.id}
-                          className="bg-white border border-brand-clay/5 rounded-2xl p-4 shadow-sm space-y-3"
-                        >
-                          <div className="flex justify-between items-center text-xs">
-                            <span className="font-mono font-bold text-brand-clay">{order.id}</span>
-                            <span className="text-brand-clay/50 font-sans">{order.date}</span>
+                      {/* Account details panel */}
+                      <div className="bg-white border border-brand-clay/5 rounded-2xl p-5 shadow-sm space-y-4">
+                        <h5 className="font-display font-extrabold text-brand-clay text-xs uppercase tracking-wider border-b border-brand-clay/5 pb-2">
+                          Account Profile
+                        </h5>
+                        <div className="grid grid-cols-2 gap-y-4 gap-x-2 text-xs font-sans text-brand-clay">
+                          <div>
+                            <span className="text-brand-clay/40 block text-[10px] uppercase font-bold tracking-wide">Parent Name</span>
+                            <span className="font-semibold text-brand-clay-dark">{user.name}</span>
                           </div>
-
-                          {/* Order Products Preview */}
-                          <div className="space-y-2">
-                            {order.items.map((item, idx) => (
-                              <div key={idx} className="flex gap-2.5 items-center bg-brand-cream/40 p-1.5 rounded-xl border border-brand-clay/5">
-                                <img
-                                  src={item.product?.image}
-                                  alt={item.product?.name}
-                                  className="w-10 h-12 object-cover rounded-lg bg-brand-beige"
-                                  referrerPolicy="no-referrer"
-                                />
-                                <div className="flex-grow">
-                                  <p className="text-xs font-bold text-brand-clay truncate max-w-[200px]">
-                                    {item.product?.name}
-                                  </p>
-                                  <p className="text-[10px] text-brand-clay/60 font-sans">
-                                    Size: {item.size} • Qty: {item.quantity}
-                                  </p>
-                                </div>
-                                <span className="text-xs font-display font-bold text-brand-clay pr-2">
-                                  ${(item.product?.price * item.quantity).toFixed(2)}
-                                </span>
-                              </div>
-                            ))}
+                          <div>
+                            <span className="text-brand-clay/40 block text-[10px] uppercase font-bold tracking-wide">Verified Email</span>
+                            <span className="font-semibold text-brand-clay-dark truncate block max-w-[155px]" title={user.email}>{user.email}</span>
                           </div>
-
-                          <div className="flex justify-between items-center pt-2 border-t border-brand-clay/5">
-                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${order.statusColor}`}>
-                              {order.status}
+                          <div>
+                            <span className="text-brand-clay/40 block text-[10px] uppercase font-bold tracking-wide">Membership</span>
+                            <span className="font-bold text-brand-mint-dark flex items-center gap-1 mt-0.5">
+                              <ShieldCheck className="w-3.5 h-3.5" />
+                              VIP Parent Member
                             </span>
-                            <span className="text-xs font-display font-black text-brand-clay">
-                              Total: ${order.total.toFixed(2)}
+                          </div>
+                          <div>
+                            <span className="text-brand-clay/40 block text-[10px] uppercase font-bold tracking-wide">Join Date</span>
+                            <span className="font-semibold text-brand-clay-dark flex items-center gap-1 mt-0.5">
+                              <Calendar className="w-3.5 h-3.5 text-brand-clay/40" />
+                              {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short' })}
                             </span>
                           </div>
                         </div>
-                      ))}
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    /* TAB 2: ORDER HISTORY LIST (RETRIEVED FROM SIMULATED LOCAL STORAGE STATE) */
+                    <div className="space-y-4 animate-fadeIn">
+                      <div className="flex items-center gap-1.5 border-b border-brand-clay/5 pb-2">
+                        <Package className="w-4 h-4 text-brand-clay/60" />
+                        <h5 className="font-display font-extrabold text-brand-clay text-xs uppercase tracking-wide">
+                          Completed Purchases History
+                        </h5>
+                      </div>
+
+                      {localOrders.length === 0 ? (
+                        <div className="text-center py-10 bg-white border border-brand-clay/5 rounded-3xl space-y-2 shadow-sm">
+                          <Package className="w-8 h-8 text-brand-clay/20 mx-auto animate-pulse" />
+                          <p className="font-display font-bold text-brand-clay text-sm">No purchases logged yet</p>
+                          <p className="text-xs text-brand-clay/50 font-sans max-w-[240px] mx-auto">Complete a checkout in your basket to see it logged in this history.</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-4 max-h-[360px] overflow-y-auto pr-1">
+                          {localOrders.map((order) => {
+                            const isDelivered = order.status?.toLowerCase() === 'delivered';
+                            const isShipped = order.status?.toLowerCase() === 'shipped';
+                            const statusColor = isDelivered
+                              ? 'text-brand-mint-dark bg-brand-mint/40 border-brand-mint-dark/10'
+                              : isShipped
+                                ? 'text-amber-600 bg-amber-50 border-amber-200/50'
+                                : 'text-brand-clay/70 bg-brand-peach/15 border-brand-clay/10';
+
+                            return (
+                              <div
+                                key={order.orderId}
+                                className="bg-white border border-brand-clay/5 rounded-2xl p-4 shadow-sm space-y-3 hover:border-brand-clay/15 transition-all"
+                              >
+                                <div className="flex justify-between items-center text-xs">
+                                  <div className="flex flex-col">
+                                    <span className="font-mono font-black text-brand-clay-dark">{order.orderId}</span>
+                                    <span className="text-[10px] text-brand-clay/40 font-sans mt-0.5">{order.date}</span>
+                                  </div>
+                                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-sans font-bold border uppercase tracking-wider ${statusColor}`}>
+                                    {order.status || 'Processing'}
+                                  </span>
+                                </div>
+
+                                {/* Order Products Preview */}
+                                <div className="space-y-2 border-t border-b border-brand-clay/5 py-2.5">
+                                  {order.items?.map((item: any, idx: number) => (
+                                    <div key={idx} className="flex gap-2.5 items-center bg-brand-cream/40 p-1.5 rounded-xl border border-brand-clay/5">
+                                      <img
+                                        src={item.image}
+                                        alt={item.name}
+                                        className="w-10 h-12 object-cover rounded-lg bg-brand-beige flex-shrink-0"
+                                        referrerPolicy="no-referrer"
+                                      />
+                                      <div className="flex-grow min-w-0">
+                                        <p className="text-xs font-bold text-brand-clay truncate">
+                                          {item.name}
+                                        </p>
+                                        <p className="text-[10px] text-brand-clay/50 font-sans">
+                                          Size: {item.size} • Qty: {item.quantity}
+                                        </p>
+                                      </div>
+                                      <span className="text-xs font-display font-bold text-brand-clay flex-shrink-0 pr-1">
+                                        ${(item.price * item.quantity).toFixed(2)}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+
+                                <div className="flex justify-between items-center pt-0.5 text-xs">
+                                  <span className="text-[10px] text-brand-clay/40 font-sans">
+                                    Paid: <span className="font-semibold text-brand-clay/60">{order.paymentMethod || 'Credit Card'}</span>
+                                  </span>
+                                  <span className="font-display font-black text-brand-clay">
+                                    Total: ${order.totalCost ? order.totalCost.toFixed(2) : (order.total ? order.total.toFixed(2) : '0.00')}
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Logout Button */}
                   <button
+                    type="button"
                     onClick={() => {
                       onLogout();
                       onClose();
