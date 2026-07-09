@@ -1,0 +1,94 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&family=Nunito+Sans:wght@400;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Nunito Sans", system-ui, -apple-system, sans-serif;
+  --font-display: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  
+  --color-brand-cream: #FFFDF9;
+  --color-brand-peach: #FFDBC1;
+  --color-brand-peach-dark: #795f4a;
+  --color-brand-mint: #B5EAD7;
+  --color-brand-mint-dark: #366758;
+  --color-brand-lavender: #E2CFEA;
+  --color-brand-clay: #735945;
+  --color-brand-clay-dark: #5a422f;
+  --color-brand-beige: #f5f3ef;
+}
+
+@layer utilities {
+  .puffy-shadow {
+    box-shadow: 0 20px 40px rgba(115, 89, 69, 0.06);
+  }
+  
+  .puffy-shadow-lg {
+    box-shadow: 0 30px 60px rgba(115, 89, 69, 0.12);
+  }
+  
+  .inner-sunken {
+    box-shadow: inset 0 2px 4px rgba(115, 89, 69, 0.05);
+  }
+  
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  
+  .animate-marquee {
+    display: flex;
+    animation: marquee 35s linear infinite;
+    width: max-content;
+  }
+}
+
+/* Micro-interactions and Tactile feel definitions */
+.puffy-card {
+  box-shadow: 0 16px 32px rgba(115, 89, 69, 0.05);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease;
+}
+
+.puffy-card:hover {
+  transform: translateY(-6px) scale(1.015);
+  box-shadow: 0 24px 48px rgba(115, 89, 69, 0.1);
+}
+
+.puffy-btn-primary {
+  background: linear-gradient(180deg, #8a6f58 0%, #735945 100%);
+  box-shadow: 0 8px 24px rgba(115, 89, 69, 0.18), inset 0 2px 4px rgba(255, 255, 255, 0.15);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.puffy-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(115, 89, 69, 0.24), inset 0 2px 4px rgba(255, 255, 255, 0.2);
+}
+
+.puffy-btn-primary:active {
+  transform: scale(0.96);
+  box-shadow: 0 4px 12px rgba(115, 89, 69, 0.15);
+}
+
+.puffy-btn-secondary {
+  background: linear-gradient(180deg, #9dd1bf 0%, #366758 100%);
+  box-shadow: 0 8px 20px rgba(54, 103, 88, 0.18);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+}
+
+.puffy-btn-secondary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(54, 103, 88, 0.25);
+}
+
+.puffy-btn-secondary:active {
+  transform: scale(0.96);
+}
+

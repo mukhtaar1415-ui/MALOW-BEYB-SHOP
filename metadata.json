@@ -1,0 +1,6 @@
+{
+  "name": "Malow Beyb Shop",
+  "description": "An organic and premium baby apparel shop featuring puffy boutique styling, fluid navigation across Home, Shop, Details, and Cart, size filtering, and an interactive shopping basket with a maximum item price of $15.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
